@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c",
+        "assembler.h": "c",
+        "hashmap.h": "c",
+        "util.h": "c",
+        "preassembler.h": "c",
+        "globals.h": "c",
+        "firstpassscript.h": "c"
+    }
+}
