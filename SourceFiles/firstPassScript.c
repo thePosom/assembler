@@ -196,6 +196,7 @@ int parseCommas(char **wordsArray, int wordsCount, char **output) {
     *output = '\0';
 
 
+
     str = wordsArray[wordsCount - 1 ];
     if ( *(str + strlen(str) - 1) == ',' ) {
         /*EROORRR*/
