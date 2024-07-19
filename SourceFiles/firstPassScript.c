@@ -212,6 +212,8 @@ int lineToMachineCode(char **currentInstruction, int wordCount, machineCodeLine 
     char **arguments;
     bool firstIsRegister;
 
+    arguments = NULL;
+
     wordCount = parseCommas(currentInstruction + 1, wordCount, arguments);
     size = wordCount;
 
