@@ -19,4 +19,8 @@ char* removeQuotions(char *str);
 
 bool endsWithColon(char *str);
 
+int parseCommas(char **wordsArray, int wordsCount, char **output);
+
+int lineToMachineCode(char **currentInstruction, int wordCount, machineCodeLine line[3]);
+
 #endif

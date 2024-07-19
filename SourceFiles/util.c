@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "../HeaderFiles/util.h"
 #include "../HeaderFiles/globals.h"
+
+void initializeMachineCodeLine(machineCodeLine *word);
 
 
 void lineToArrayOfWords(char *str, line *currentLine) {
@@ -50,7 +53,7 @@ void lineToArrayOfWords(char *str, line *currentLine) {
     free(strCopy);
 }
 
-int getOperandsCount(char *operation) {
+int getArgumentsCount(char *operation) {
     if ( (strcmp (operation, "mov") == 0 ) ||
     (strcmp (operation, "cmp") == 0 ) || 
     (strcmp (operation, "add") == 0 ) ||
@@ -94,7 +97,7 @@ bool isInstruction(char *name) {
     (strcmp (name, "jsr") == 0 ) ||
     (strcmp (name, "rts") == 0 ) ||
     (strcmp (name, "stop") == 0 ) )
-
+        return true;
     return false;
 }
 
@@ -146,24 +149,23 @@ bool endsWithQuotationMark (char *str) {
 }
 
 void initializeMachineCodeLine(machineCodeLine *word) {
-    word->are[0] = false;
-    word->are[1] = false;/*malloc prob*/
-    word->are[2] = false;
-    word->dest[0] = false;
-    word->dest[1] = false;
-    word->dest[2] = false;
-    word->dest[3] = false;
-    word->origin[0] = false;
-    word->origin[1] = false;
-    word->origin[2] = false;
-    word->origin[3] = false;
-    word->opcode[0] = false;
-    word->opcode[1] = false;
-    word->opcode[2] = false;
-    word->opcode[3] = false;
-} 
+    int i;
 
-void instructionToOpcode (char *instruction, bool opcode[4]) {
+    word->are[0] = false;
+    word->are[1] = false;
+    word->are[2] = false;
+
+    for (i = 0; i < 12; i++)
+        word->values[i] = false;
+}
+
+void initializeMachineCodeLines(machineCodeLine lines[3]) {
+    int i;
+    for (i = 0; i < 3; i++) 
+        initializeMachineCodeLine(&lines[i]);
+}
+
+void instructionToOpcode (char *instruction, bool *opcode) {
     int instructionNum = ERROR;
     if (strcmp (instruction, "mov") == 0) 
         instructionNum = 0;
@@ -198,19 +200,19 @@ void instructionToOpcode (char *instruction, bool opcode[4]) {
     else if (strcmp (instruction, "stop") == 0) 
         instructionNum = 15;
     
-    binaryToBoolArray(instructionNum, opcode, 4);
+    unsignedNumToBoolArray(instructionNum, opcode, 4);
 }
 
 bool unsignedNumToBoolArray(unsigned int num, bool arr[], int size) {
     int i;
-    int iPow;
+    int pow;
 
     if (my_pow(2,size)<num) 
         return false;
-    
+    pow = 1;
     for (i = 0; i<size; i++) {
-        iPow = my_pow(2, i);
-        arr[i] = (num % (iPow*2) >= iPow);
+        arr[i] = (num % (pow*2) >= pow);
+        pow *= 2;
     }
     return true;
 }
@@ -222,5 +224,33 @@ int my_pow(int a, unsigned int b) {
     for (i = 0; i < b; i++)
         answer *= a;
     return answer;
+}
+
+void freeStringArray (char **arr, int size) {
+    int i;
+    for (i = 0; i < size; i++) 
+        free (*(arr+i));
+    free (arr);
+}
+
+int stringToNum(char *str) {
+    int num;
+    num = atoi(str);
+    if (num == 0) {
+        if ( (strcmp(str, "0" ) != 0) && (strcmp(str, "+0" ) != 0) && (strcmp(str, "-0" ) != 0) )
+            return INT_MIN;
+    }
+    if (num == INT_MAX || num == INT_MIN) 
+            return INT_MIN;
+
+    return num;
+}
+
+bool isRegister(char *str) {
+    return (*str == 'r') && ( (*(str+1) >= '0') || (*(str+1) < '8') ) && (*(str+2) == '\0');
+}
+
+int getRegisterNum (char *str) {
+    return (*(str + 1) - '0');
 }
 

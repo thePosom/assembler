@@ -13,7 +13,7 @@ void firstPass(char *filesName) {
     FILE *amFile;
     FILE *obFile;
 
-    machineCodeLine *machinecodeline;
+    machineCodeLine machinecodeline[3];
     bool isSymbolDef;
     char buffer[MAX_LINE_SIZE];
     char **currentInstruction;
@@ -109,9 +109,7 @@ void firstPass(char *filesName) {
 
             if (isInstruction(*currentInstruction)) {
                 /*IDK add to IC*/
-                lineToMachineCode(currentInstruction, currentLine->wordsCount+wordNumModifier);
-                initializeMachineCodeLine(machinecodeline);
-                instructionToOpcode(*currentInstruction, (*machinecodeline).opcode);
+                size = lineToMachineCode(currentInstruction, currentLine->wordsCount+wordNumModifier, machinecodeline);
             }
 
             else if ( (strcmp(*currentInstruction, ".data") == 0) && (strcmp(*currentInstruction, ".string") == 0) && 
@@ -135,65 +133,37 @@ int parseDataArray(line *currentLine, int *dataNums) {
     int i;
     int num;
     int size;
-    char *token;
     char *str;
-    char *delimiter = ",";
-    char dataString[MAX_LINE_SIZE];
+    char **dataString;
+
+    dataString = NULL;
     
-    dataString[0] = '\0';
-    dataNums = (int *)malloc(MAX_WORDS_IN_LINE * sizeof(int));
+    size = parseCommas(currentLine->wordsArray, currentLine->wordsCount, dataString);
+    dataNums = (int *)malloc(size * sizeof(int));
 
-
-    str = currentLine->wordsArray[(currentLine->wordsCount) - 1 ];
-    if ( *(str + strlen(str) - 1) == ',' ) {
-        /*EROORRR*/
-    }
-
-    for (i=2; i<currentLine->wordsCount; i++) {
-        str = currentLine->wordsArray[i];
-        if ( (i<currentLine->wordsCount - 1) && (*(str+strlen(str)-1) != ',') && ( *(currentLine->wordsArray[i+1]) != ',' ) );
-        strcat(dataString, str);
-    }
-
-    size = 0;
-    if (strstr(dataString, ",,") != NULL) {
-        /*ERROR*/
-    }
-
-    token = strtok(dataString, delimiter); /*check if it changes og*/
-
-    while (token != NULL && size < MAX_WORDS_IN_LINE) {
-        num = atoi(token);
-        if (num == 0) {
-            if ( (strcmp(token, "0" ) != 0) && (strcmp(token, "+0" ) != 0) && (strcmp(token, "-0" ) != 0) ) {
-                /*ERRORR*/
-            }
-        }
-        if (num == INT_MAX || num == INT_MIN) {
+    for (i = 0; i < size; i++) {
+        str = *(dataString+i);
+        num = stringToNum(str);
+        if (num == INT_MIN) {
             /*ERRORR*/
         }
-        /*check if num too big or small*/
 
         dataNums[size] = num;
-        size++;
-        token = strtok(NULL, delimiter);
     }
-
-    dataNums = (int *)realloc(dataNums, size * sizeof(int));
 
     return size;
 }
 
 int parseCommas(char **wordsArray, int wordsCount, char **output) {
     int i;
-    int num;
     int size;
     char *token;
     char *str;
     char *delimiter = ",";
+    char temp[MAX_LINE_SIZE];
     
-    output = (char **)malloc(MAX_LINE_SIZE * sizeof(char));
-    *output = '\0';
+    output = (char **)malloc(wordsCount * sizeof(char*));
+    temp[0] = '\0';
 
 
 
@@ -204,35 +174,27 @@ int parseCommas(char **wordsArray, int wordsCount, char **output) {
 
     for (i=2; i<wordsCount; i++) {
         str = wordsArray[i];
-        if ( (i<wordsCount - 1) && (*(str+strlen(str)-1) != ',') && ( *(wordsArray[i+1]) != ',' ) );
-        strcat(dataString, str);
+        if ( (i<wordsCount - 1) && (*(str+strlen(str)-1) != ',') && ( *(wordsArray[i+1]) != ',' ) ) {
+            /*error*/
+        }
+        strcat(temp, str);
     }
 
     size = 0;
-    if (strstr(dataString, ",,") != NULL) {
+    if (strstr(temp, ",,") != NULL) {
         /*ERROR*/
     }
 
-    token = strtok(dataString, delimiter); /*check if it changes og*/
+    token = strtok(temp, delimiter); /*check if it changes og*/
 
-    while (token != NULL && size < MAX_WORDS_IN_LINE) {
-        num = atoi(token);
-        if (num == 0) {
-            if ( (strcmp(token, "0" ) != 0) && (strcmp(token, "+0" ) != 0) && (strcmp(token, "-0" ) != 0) ) {
-                /*ERRORR*/
-            }
-        }
-        if (num == INT_MAX || num == INT_MIN) {
-            /*ERRORR*/
-        }
-        /*check if num too big or small*/
-
-        dataNums[size] = num;
+    while (token != NULL) {
+        
+        output[size] = my_strdup(token);
         size++;
         token = strtok(NULL, delimiter);
     }
 
-    dataNums = (int *)realloc(dataNums, size * sizeof(int));
+    output = (char **)realloc(output, size * sizeof(int*));
 
     return size;
 }
@@ -244,6 +206,81 @@ char* removeQuotions(char *str) {
     return copy;
 }
 
-void lineToMachineCode(char **currentInstruction, int wordCount) {
-    
+int lineToMachineCode(char **currentInstruction, int wordCount, machineCodeLine lines[3]) {
+    int i;
+    int size;
+    char **arguments;
+    bool firstIsRegister;
+
+    wordCount = parseCommas(currentInstruction + 1, wordCount, arguments);
+    size = wordCount;
+
+    initializeMachineCodeLines(lines);
+    instructionToOpcode(*currentInstruction, lines[0].values + 8);
+    lines[0].are[2] = true;
+
+    if (wordCount != getArgumentsCount(*currentInstruction) ) {
+        /* Error */
+    }
+
+    firstIsRegister = false;
+
+    for (i = 0; i < wordCount; i++) {
+        int num;
+        int modifier;
+        int addressingMethod;
+
+        if (**(arguments+i) == '#') {
+            addressingMethod = 0;
+            num = stringToNum(*(arguments+i));
+            if (num == INT_MIN) {
+                /*AEROE*/
+            }
+
+            lines[i+1].are[2] = true;
+            unsignedNumToBoolArray(num, lines[i+1].values, 12);
+        }
+
+        else if (isRegister (*(arguments+i) ) ) {
+            addressingMethod = 2;
+            num = getRegisterNum(*(arguments+i));
+
+            if (firstIsRegister) {
+                modifier = 0;
+                size--;
+            }
+            else
+                modifier = 1;
+
+            lines[i+1].are[2] = true;
+            unsignedNumToBoolArray(num, lines[i+modifier].values + (i*3), 3);
+            
+            firstIsRegister = true;
+        }
+
+        else if ( (**(arguments+i) == '*') && (isRegister (*(arguments+i) + 1 ) ) ) {
+            addressingMethod = 3;
+            num = getRegisterNum(*(arguments+i) + 1);
+
+            if (firstIsRegister) 
+                modifier = 0;
+            else
+                modifier = 1;
+
+            lines[i+1].are[2] = true;
+            unsignedNumToBoolArray(num, lines[i+modifier].values + (i*3), 3);
+            
+            firstIsRegister = true;
+        }
+
+        else 
+            addressingMethod = 1;
+        
+        
+        lines[0].values[i*3 + addressingMethod] = true;
+    }
+
+
+
+    return size;
 } 

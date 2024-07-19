@@ -10,9 +10,7 @@ typedef struct {
 
 typedef struct {
     bool are[3];
-    bool dest[4];
-    bool origin[4];
-    bool opcode[4];
+    bool values[12];
 } machineCodeLine;
 
 void lineToArrayOfWords(char *str, line *currentLine);
@@ -21,7 +19,7 @@ void lineToArrayOfWords(char *str, line *currentLine);
 gets a clean word of an operation and returns how may operands 
 it has. return -1 if it's not an operation
 */
-int getOperandsCount(char *operation); 
+int getArgumentsCount(char *operation); 
 
 bool isNameLegal(char *name);
 
@@ -31,12 +29,22 @@ char *my_strdup(const char *src);
 
 bool endsWithQuotationMark (char *str);
 
-void initializeMachineCodeLine(machineCodeLine *word);
+/* void initializeMachineCodeLine(machineCodeLine *word); */
 
-void instructionToOpcode (char *instruction, bool opcode[4]);
+void initializeMachineCodeLines(machineCodeLine lines[3]);
+
+void instructionToOpcode (char *instruction, bool *opcode);
 
 bool unsignedNumToBoolArray(unsigned int num, bool arr[], int size);
 
 int my_pow(int a, unsigned int b);
+
+void freeStringArray (char **arr, int size);
+
+int stringToNum(char *str);
+
+bool isRegister(char *str);
+
+int getRegisterNum (char *str);
 
 #endif

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         char *filesName;
         filesName = argv[i];
         expandMacros(filesName);
-        /*firstPass(filesName);*/
+        firstPass(filesName);
         /*secondPass(filesName);*/ 
         
         
