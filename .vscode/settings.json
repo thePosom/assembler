@@ -8,6 +8,7 @@
         "util.h": "c",
         "preassembler.h": "c",
         "globals.h": "c",
-        "firstpassscript.h": "c"
+        "firstpassscript.h": "c",
+        "dynamicarray.h": "c"
     }
 }

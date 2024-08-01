@@ -1,17 +1,14 @@
 #ifndef UTIL
 #define UTIL
 
+#include "globals.h"
+
 typedef enum { false, true } bool;
 
 typedef struct {
     int wordsCount;
     char *wordsArray[10];
 } line;
-
-typedef struct {
-    bool are[3];
-    bool values[12];
-} machineCodeLine;
 
 void lineToArrayOfWords(char *str, line *currentLine);
 
@@ -29,13 +26,9 @@ char *my_strdup(const char *src);
 
 bool endsWithQuotationMark (char *str);
 
-/* void initializeMachineCodeLine(machineCodeLine *word); */
+int instructionToOpcode (char *instruction);
 
-void initializeMachineCodeLines(machineCodeLine lines[3]);
-
-void instructionToOpcode (char *instruction, bool *opcode);
-
-bool unsignedNumToBoolArray(unsigned int num, bool arr[], int size);
+bool unsignedNumToBoolArray(unsigned int num, bool arr[], int size); /*nope*/
 
 int my_pow(int a, unsigned int b);
 
@@ -46,5 +39,6 @@ int stringToNum(char *str);
 bool isRegister(char *str);
 
 int getRegisterNum (char *str);
+
 
 #endif

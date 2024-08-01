@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "machinecodeline.h"
 #include "dynamicArray.h"
 #include "hashmap.h"
 #include "globals.h"
@@ -19,8 +20,8 @@ char* removeQuotions(char *str);
 
 bool endsWithColon(char *str);
 
-int parseCommas(char **wordsArray, int wordsCount, char **output);
+int parseCommas(line *currentLine, int startingWord, char ***output);
 
-int lineToMachineCode(char **currentInstruction, int wordCount, machineCodeLine line[3]);
+int lineToMachineCode(line *currentLine, int startingWord, machineCodeLine *lines[3]);
 
 #endif

@@ -2,7 +2,7 @@
  CC = gcc
  CFLAGS = -ansi -Wall -pedantic -g # Flags
  GLOBAL_DEPS = globals.h # Dependencies for everything
- EXE_DEPS = assembler.o  util.o hashmap.o preAssembler.o firstPassScript.o dynamicArray.o # Deps for exe
+ EXE_DEPS = assembler.o  util.o hashmap.o preAssembler.o firstPassScript.o dynamicArray.o machinecodeline.o # Deps for exe
 
  ## Executable
 %.o: ./SourceFiles/%.c $(DEPS)

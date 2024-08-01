@@ -3,16 +3,6 @@
 #include <string.h>
 
 #include "../HeaderFiles/preAssembler.h"
-#include "../HeaderFiles/hashmap.h"
-#include "../HeaderFiles/globals.h"
-#include "../HeaderFiles/util.h"
-
-void startOfMacroDefinition(line *currentLine, lineList **lines, char **macroName, bool *macro);
-
-void insideMacroDefinition (line *currentLine, lineList *lines, char *macroName, char* buffer, bool *macro);
-
-void callForMacro(line *currentLine, FILE *amFile, char *buffer);
-
 
 void expandMacros(char *filesName) {
 
@@ -50,7 +40,7 @@ void expandMacros(char *filesName) {
         line* currentLine = (line *)malloc(sizeof(line));
         lineToArrayOfWords(buffer, currentLine);
 
-        if (currentLine->wordsCount != 0) {
+        if (currentLine->wordsCount != 0 && currentLine->wordsArray[0][0] != ';') {
 
             if ( strcmp(currentLine->wordsArray[0], "macr") == 0 )
                 startOfMacroDefinition(currentLine, &lines, &macroName, &macro);

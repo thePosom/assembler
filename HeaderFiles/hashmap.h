@@ -68,6 +68,6 @@ void freeMacroNamesTable();
 
 void freeList(lineList *lines);
 void insertLineNodeToEnd(lineList *lines, lineNode *pNode);
-
+void addToAllDataInSymbolTable(int num);
 
 #endif

@@ -69,6 +69,7 @@ void insertToSymbolTable(char *name, char *type, int value) {
     pNode = (symbolNode *)malloc(sizeof(symbolNode)); 
 
     pNode->name = my_strdup(name);
+    pNode->type = my_strdup(type);
 
     pNode->next = symbolsHashmap[location].head;
     symbolsHashmap[location].head = pNode;
@@ -131,8 +132,12 @@ char* getSymbolType(char *name) {
     pNode = symbolsHashmap[location].head;
 
     while (pNode) {
-        if (strcmp ( (pNode->name), name ) == 0 )
-            return pNode->type;
+        if (strcmp ( (pNode->name), name ) == 0 ) {
+            if (pNode->type != NULL)
+                return pNode->type;
+            else 
+                return NULL;
+        }
         pNode = pNode->next;
     }
     
@@ -236,4 +241,18 @@ void insertLineNodeToEnd(lineList *lines, lineNode *pNode) {
 }
 
 
-
+void addToAllDataInSymbolTable(int num) {
+    int i;
+    for (i = 0; i < HASHMAPSIZE; i++) {
+        if (symbolsHashmap[i].head) {
+            symbolNode *pNode = symbolsHashmap[i].head;
+            while (pNode) {
+                symbolNode* next;
+                next = pNode->next;
+                if (pNode->type != NULL && strcmp(pNode->type, ".data") == 0) /*segment*/
+                    pNode->value+=num;
+                pNode = next;
+            }
+        }
+    }
+}

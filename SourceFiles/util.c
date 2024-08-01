@@ -4,9 +4,8 @@
 #include <limits.h>
 
 #include "../HeaderFiles/util.h"
-#include "../HeaderFiles/globals.h"
 
-void initializeMachineCodeLine(machineCodeLine *word);
+
 
 
 void lineToArrayOfWords(char *str, line *currentLine) {
@@ -148,59 +147,41 @@ bool endsWithQuotationMark (char *str) {
     return false;
 }
 
-void initializeMachineCodeLine(machineCodeLine *word) {
-    int i;
-
-    word->are[0] = false;
-    word->are[1] = false;
-    word->are[2] = false;
-
-    for (i = 0; i < 12; i++)
-        word->values[i] = false;
-}
-
-void initializeMachineCodeLines(machineCodeLine lines[3]) {
-    int i;
-    for (i = 0; i < 3; i++) 
-        initializeMachineCodeLine(&lines[i]);
-}
-
-void instructionToOpcode (char *instruction, bool *opcode) {
-    int instructionNum = ERROR;
+int instructionToOpcode (char *instruction) {
     if (strcmp (instruction, "mov") == 0) 
-        instructionNum = 0;
+        return 0;
     else if (strcmp (instruction, "cmp") == 0) 
-        instructionNum = 1;
+        return 1;
     else if (strcmp (instruction, "add") == 0) 
-        instructionNum = 2;
+        return 2;
     else if (strcmp (instruction, "sub") == 0) 
-        instructionNum = 3;
+        return 3;
     else if (strcmp (instruction, "lea") == 0) 
-        instructionNum = 4;
+        return 4;
     else if (strcmp (instruction, "clr") == 0) 
-        instructionNum = 5;
+        return 5;
     else if (strcmp (instruction, "not") == 0) 
-        instructionNum = 6;
+        return 6;
     else if (strcmp (instruction, "inc") == 0) 
-        instructionNum = 7;
+        return 7;
     else if (strcmp (instruction, "dec") == 0) 
-        instructionNum = 8;
+        return 8;
     else if (strcmp (instruction, "jmp") == 0) 
-        instructionNum = 9;
+        return 9;
     else if (strcmp (instruction, "bne") == 0) 
-        instructionNum = 10;
+        return 10;
     else if (strcmp (instruction, "red") == 0) 
-        instructionNum = 11;
+        return 11;
     else if (strcmp (instruction, "prn") == 0) 
-        instructionNum = 12;
+        return 12;
     else if (strcmp (instruction, "jsr") == 0) 
-        instructionNum = 13;
+        return 13;
     else if (strcmp (instruction, "rts") == 0) 
-        instructionNum = 14;
+        return 14;
     else if (strcmp (instruction, "stop") == 0) 
-        instructionNum = 15;
+        return 15;
     
-    unsignedNumToBoolArray(instructionNum, opcode, 4);
+    return ERROR;
 }
 
 bool unsignedNumToBoolArray(unsigned int num, bool arr[], int size) {
@@ -253,4 +234,6 @@ bool isRegister(char *str) {
 int getRegisterNum (char *str) {
     return (*(str + 1) - '0');
 }
+
+/* int decimalToOctal */
 

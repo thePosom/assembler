@@ -8,19 +8,9 @@ endmacr
  inc r6
  mov *r6,K
  sub r1, r4
-macr moka
-sub bitches
-idkn asd
-das
-
-
-    endmacr
  m_macr
-31
  dec K
  jmp LOOP
-    moka
-
   m_macr
 END: stop
 STR: .string "abcd"
