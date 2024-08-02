@@ -10,9 +10,9 @@ void initializeMachineCodeLine(machineCodeLine *line) {
     line->values[1] = 0;
 }
 
-void initializeMachineCodeLines(machineCodeLine *lines[3]) {
+void initializeMachineCodeLines(machineCodeLine *lines[], int size) {
     int i;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < size; i++) {
         lines[i] = (machineCodeLine *)malloc(sizeof(machineCodeLine));
         initializeMachineCodeLine(lines[i]);
     }
@@ -91,20 +91,54 @@ void insertValuesToMachineCodeLine (machineCodeLine *line, int values) /*set if 
 
     secondHalf = values >> (8 - 4);
     
-    line->values[0] = secondHalf;
+    line->values[1] = secondHalf;
 }
 
-void setMachineCodeDestValue (machineCodeLine *line, int value) {
+void setMachineCode3To5Values (machineCodeLine *line, int value) {
     int mask;
-    mask = 135; /* mask for 00001111*/
+    mask = 143; /* mask for 10001111*/
     line->values[0] &= mask;
     line->values[0] += (value << 4);
 }
 
-void setMachineCodeOriginValue (machineCodeLine *line, int value) {
+void setMachineCode6To8Values (machineCodeLine *line, int value) {
     int mask;
 
-    mask = 240; /* mask for 11110000*/
-    line->values[0] &= mask;
-    line->values[0] += value;
+    mask = 252; /* mask for 11111100*/
+    line->values[1] &= mask;
+    line->values[1] += value >> 1;
+    setMachineCodeValues(line, 3, value%2);
+}
+
+void setMachineCode (machineCodeLine *line, int value) {
+    int mask;
+
+    mask = 7; /* mask for 00000111*/
+    line->values[0] = (unsigned char) value & mask;
+    line->values[0] += (unsigned char) ((value & ~mask) << 1);
+    line->values[1] = (unsigned char) (value >> 7);
+}
+
+void machineCodeLineToString(machineCodeLine *line) {
+    int i;
+    for (i=11;i>7;i--) {
+        printf("%d", getMachineCodeValues(line, i));
+    }
+
+    printf(" ");
+    for (;i>3;i--) {
+        printf("%d", getMachineCodeValues(line, i));
+    }
+    
+    printf(" ");
+    for (;i>=0;i--) {
+        printf("%d", getMachineCodeValues(line, i));
+    }
+
+    printf("  ");
+    for (i=2;i>=0;i--) {
+        printf("%d", getMachineCodeARE(line, i));
+    }
+
+    printf("\n");
 }

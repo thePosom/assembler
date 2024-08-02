@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     for (i=1 ; i<argc ; i++) {
         char *filesName;
         filesName = argv[i];
-        /* expandMacros(filesName); */
+        expandMacros(filesName);
         firstPass(filesName);
         /*secondPass(filesName);*/ 
         

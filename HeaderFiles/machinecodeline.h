@@ -19,14 +19,18 @@ bool getMachineCodeValues(machineCodeLine *line, int location);
 
 void initializeMachineCodeLine(machineCodeLine *line);
 
-void initializeMachineCodeLines(machineCodeLine *lines[3]);
+void initializeMachineCodeLines(machineCodeLine *lines[], int size);
 
 void insertOpcodeToMachineCodeLine (machineCodeLine *line, int opcode);
 
 void insertValuesToMachineCodeLine (machineCodeLine *line, int values);
 
-void setMachineCodeDestValue (machineCodeLine *line, int value);
+void setMachineCode3To5Values (machineCodeLine *line, int value);
 
-void setMachineCodeOriginValue (machineCodeLine *line, int value);
+void setMachineCode6To8Values (machineCodeLine *line, int value);
+
+void machineCodeLineToString(machineCodeLine *line);
+
+void setMachineCode (machineCodeLine *line, int value);
 
 #endif

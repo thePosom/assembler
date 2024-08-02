@@ -9,31 +9,21 @@ bool endsWithColon(char *str);
 void firstPass(char *filesName) {
 
     char amFileName[MAX_LINE_SIZE];
-    char obFileName[MAX_LINE_SIZE];
     FILE *amFile;
-    FILE *obFile;
 
     machineCodeLine *machinecodeline[3];
     bool isSymbolDef;
     char buffer[MAX_LINE_SIZE];
-    char *temp;
-    int *dataNums;
     int wordNumModifier;
     int IC, DC;
     int size;
     
     IC = DC = 0;
     isSymbolDef = false;
-    dataNums = (int *)malloc(sizeof(int));
 
     strcpy(amFileName, filesName);
     strcat(amFileName, ".am");
-
-    strcpy(obFileName, filesName);
-    strcat(obFileName, ".ob");
-
     amFile = fopen(amFileName, "r");
-    obFile = fopen(obFileName, "w");
 
     if (amFile == NULL) {
         perror("Error opening file"); /*ERROR, DO SOMETHING COOL*/
@@ -50,6 +40,7 @@ void firstPass(char *filesName) {
         lineToArrayOfWords(buffer, currentLine);
 
         if (currentLine->wordsCount != 0 && currentLine->wordsArray[0][0] != ';') {
+
             if (endsWithColon(currentLine->wordsArray[0])) {
                 isSymbolDef = true;
                 if (currentLine->wordsCount >= 1) {
@@ -57,7 +48,6 @@ void firstPass(char *filesName) {
                 }
                 wordNumModifier = -1;
             }
-
             else {
                 isSymbolDef = false;
                 wordNumModifier = 0;
@@ -67,46 +57,17 @@ void firstPass(char *filesName) {
                 if (currentLine->wordsCount + wordNumModifier > 2 ) {
                     /*ERRORINO*/
                 }
-                /* support multiple stuff */
+                /* support multiple stuff parse commas*/
                 insertToSymbolTable(currentLine->wordsArray[-wordNumModifier + 1], ".external", 0);
             }
-
             else if (isSymbolDef) {
-                if ( (!isNameLegal (currentLine->wordsArray[0]) ) || (!isMacroName (currentLine->wordsArray[0]) ) || (getSymbolValue (currentLine->wordsArray[0]) == -1) ) { /*needs to check for extern data string*/
-                    /*ERRRORRR*/
-                }
-
-                if ( (strcmp(currentLine->wordsArray[-wordNumModifier], ".data") == 0) || (strcmp(currentLine->wordsArray[-wordNumModifier], ".string") == 0) ) {
-
-
-                    if (strcmp(currentLine->wordsArray[-wordNumModifier], ".data") == 0) {
-                        size = parseDataArray(currentLine, dataNums);
-                        insertArrayToDataArray(dataNums, size);
-                    }
-                    else {
-                        temp = removeQuotions(currentLine->wordsArray[-wordNumModifier+1]);
-                        size = strlen(temp) + 1;
-                        insertStringToDataArray(temp);
-                        free(temp);
-                    }
-                    insertToSymbolTable(currentLine->wordsArray[0], ".data", DC);
-                    DC += size;
-                }
-            
-                else {
-                    temp = my_strdup(currentLine->wordsArray[0]);
-                    *(temp + strlen(temp) - 1) = '\0';
-                    insertToSymbolTable(temp, ".code", IC+100);
-                    free(temp);
-                }
+                DC = newSymbol (currentLine, -wordNumModifier, DC, IC);
             }
 
             if (isInstruction(currentLine->wordsArray[-wordNumModifier])) {
                 size = lineToMachineCode(currentLine, -wordNumModifier, machinecodeline);
-                insertToInstructionsArray(machinecodeline, size + 1);
-                /* for (i = 0; i < size; i++) { */
-                    /* fprintf(obFile, "%d\n", decimalToOctal(machineCodeToNum(machinecodeline[i]))); */
-                /* } */
+                insertToInstructionsArray(machinecodeline, size);
+                printf("\n");
                 IC+=size;
             }
 
@@ -117,16 +78,54 @@ void firstPass(char *filesName) {
             
         }
     }
-    free(dataNums);
     addToAllDataInSymbolTable(IC+100);
 
+}
+
+int newSymbol(line *currentLine, int startingWord, int DC, int IC) {
+    int size;
+    char *temp;
+    int *dataNums;
+    dataNums = NULL;
+
+    if ( (!isNameLegal (currentLine->wordsArray[0]) ) || (!isMacroName (currentLine->wordsArray[0]) ) || (getSymbolValue (currentLine->wordsArray[0]) == -1) ) { /*needs to check for extern data string*/
+        /*ERRRORRR*/
+    }
+
+    if ( (strcmp(currentLine->wordsArray[startingWord], ".data") == 0) || (strcmp(currentLine->wordsArray[startingWord], ".string") == 0) ) {
+
+
+        if (strcmp(currentLine->wordsArray[startingWord], ".data") == 0) {
+            size = parseDataArray(currentLine, &dataNums);
+            insertArrayToDataArray(dataNums, size);
+            insertArrayToInstructionsArray(dataNums, size);
+            free(dataNums);
+        }
+        else {
+            temp = removeQuotions(currentLine->wordsArray[startingWord+1]);
+            size = strlen(temp) + 1;
+            insertStringToInstructionsArray(temp);
+            insertStringToDataArray(temp);
+            free(temp);
+        }
+        insertToSymbolTable(currentLine->wordsArray[0], ".data", DC);
+        DC += size;
+    }
+    else {
+        temp = my_strdup(currentLine->wordsArray[0]);
+        *(temp + strlen(temp) - 1) = '\0';
+        insertToSymbolTable(temp, ".code", IC+100);
+        free(temp);
+    }
+
+    return DC;
 }
 
 bool endsWithColon(char *str) {
     return *(str + strlen(str) - 1) == ':';
 }
 
-int parseDataArray(line *currentLine, int *dataNums) {
+int parseDataArray(line *currentLine, int **dataNums) {
     int i;
     int num;
     int size;
@@ -135,17 +134,17 @@ int parseDataArray(line *currentLine, int *dataNums) {
 
     dataString = NULL;
     
-    size = parseCommas(currentLine, 0, &dataString);
-    dataNums = (int *)malloc(size * sizeof(int));
+    size = parseCommas(currentLine, 1, &dataString);
+    *dataNums = (int *)malloc(size * sizeof(int));
 
     for (i = 0; i < size; i++) {
         str = *(dataString+i);
-        num = stringToNum(str);
+        num = stringToNum(str); /*check too big too small*/
         if (num == INT_MIN) {
             /*ERRORR*/
         }
 
-        dataNums[size] = num;
+        (*dataNums)[i] = num;
     }
 
     if (size == 0) {
@@ -209,6 +208,7 @@ char* removeQuotions(char *str) {
 int lineToMachineCode(line *currentLine, int startingWord, machineCodeLine *lines[3]) {
     int i;
     int size;
+    int sizeModifier;
     char **arguments;
     bool firstIsRegister;
 
@@ -216,7 +216,7 @@ int lineToMachineCode(line *currentLine, int startingWord, machineCodeLine *line
 
     size = parseCommas(currentLine, startingWord, &arguments);
 
-    initializeMachineCodeLines(lines);
+    initializeMachineCodeLines(lines, 3);
     insertOpcodeToMachineCodeLine(lines[0], instructionToOpcode(currentLine->wordsArray[startingWord])); /*nope*/
     setMachineCodeARE(lines[0], 2, true); /*nope*/
 
@@ -225,10 +225,12 @@ int lineToMachineCode(line *currentLine, int startingWord, machineCodeLine *line
     }
 
     firstIsRegister = false;
+    sizeModifier = 0;
 
     for (i = 0; i < size; i++) {
         int num;
         int addressingMethod;
+
 
         if (**(arguments+i) == '#') {
             addressingMethod = 0;
@@ -236,55 +238,58 @@ int lineToMachineCode(line *currentLine, int startingWord, machineCodeLine *line
             if (num == INT_MIN) { /*check if too small or big somewhere*/
                 /*AEROE*/
             }
+            /* numTo */
 
             setMachineCodeARE(lines[i+1], 2, true);
-            insertValuesToMachineCodeLine(lines[i+1], num);
+            insertValuesToMachineCodeLine(lines[i+1], num); /*make work good with neg*/
         }
 
         else if ( (**(arguments+i) == '*') && (isRegister (*(arguments+i) + 1 ) ) ) {
             addressingMethod = 2;
             num = getRegisterNum(*(arguments+i) + 1);
 
-            if (firstIsRegister)
-                size--;
-
-            if (i <= 1) 
-                setMachineCodeOriginValue(lines[size - 1], num);
-            else 
-                setMachineCodeDestValue(lines[size - 1], num);
-
-            setMachineCodeARE(lines[i+1], 2, true);
-            
-            firstIsRegister = true;
+            sizeModifier = ifRegister (lines, num, i, &firstIsRegister, &size);
         }
 
         else if (isRegister (*(arguments+i) ) ) {
             addressingMethod = 3;
             num = getRegisterNum(*(arguments+i));
 
-            if (firstIsRegister) {
-                setMachineCodeOriginValue(lines[i], num);
-                size--;
-            }  
-            else 
-                setMachineCodeDestValue(lines[i+1], num);
-
-            setMachineCodeARE(lines[i+1], 2, true);
-            
-            firstIsRegister = true;
+            sizeModifier = ifRegister (lines, num, i, &firstIsRegister, &size);
         }
 
         else 
             addressingMethod = 1;
         
-        
-        setMachineCodeValues(lines[0], i*4 + addressingMethod, true);
+        if (i + 1 == size) 
+            setMachineCodeValues(lines[0], 0 + addressingMethod, true);
+        else
+            setMachineCodeValues(lines[0], 4 + addressingMethod, true);
     }
 
 
 
-    return size;
-} 
+    return size + sizeModifier + 1;
+}
+
+int ifRegister (machineCodeLine *lines[3], int num, int i, bool *firstIsRegister, int *size) {
+    int sizeModifier;
+    sizeModifier = 0;
+    if (*firstIsRegister) {
+        sizeModifier = -1;
+    }
+        
+    if (i + 1 == *size)
+        setMachineCode3To5Values(lines[i + sizeModifier + 1], num);
+    else 
+        setMachineCode6To8Values(lines[i + sizeModifier + 1], num);
+
+    setMachineCodeARE(lines[i+1], 2, true);
+    
+    *firstIsRegister = true;
+
+    return sizeModifier;
+}
 
 
 

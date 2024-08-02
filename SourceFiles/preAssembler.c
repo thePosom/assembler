@@ -60,6 +60,9 @@ void expandMacros(char *filesName) {
     }
 
     freeMacroTable();
+    fflush(amFile);
+    fclose(asFile);
+    fclose(amFile);
 }
 
 void startOfMacroDefinition(line *currentLine, lineList **lines, char **macroName, bool *macro) {

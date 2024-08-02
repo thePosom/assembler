@@ -17,6 +17,7 @@ void insertToInstructionsArray(machineCodeLine *lines[3], int size) {
 
     for (i=0;i<size;i++) {
         instructionsArray->arr[instructionsArray->size + i] = *lines[i];
+        machineCodeLineToString(lines[i]);
         free(lines[i]);
     }
     instructionsArray->size += size;
@@ -58,8 +59,61 @@ void insertStringToDataArray(char *str) {
         insertToDataArray((int)c);
 }
 
+void insertStringToInstructionsArray(char *str) {
+    int i;
+    int size;
+    char c;
+    char *newStr;
+    machineCodeLine **lines;
+    newStr = str;
+    size = 0;
+
+    while ((c = *newStr++) != '\0')
+        size++;
+    
+    lines = (machineCodeLine **)malloc(size * sizeof(machineCodeLine *));
+    initializeMachineCodeLines(lines, size);
+    instructionsArray->arr = (machineCodeLine *)realloc(instructionsArray->arr, (instructionsArray->size + size) * sizeof(machineCodeLine));
+
+    if (instructionsArray->arr == NULL) {
+        /*ERROR NOT ENOUGH SPACE*/
+    }
+
+    for (i=0; (c = *str++) != '\0'; i++) {
+        setMachineCode(lines[i], (int)c );
+        instructionsArray->arr[instructionsArray->size + i] = *lines[i];
+        machineCodeLineToString(lines[i]);
+    }
+
+    instructionsArray->size += size;
+    free (lines);
+    printf("\n");
+}
+
 void insertArrayToDataArray(int *arr, int size) {
     int i;
     for (i=0; i<size; i++)
         insertToDataArray( *(arr + i) );
+}
+
+void insertArrayToInstructionsArray (int *arr, int size) {
+    int i;
+    machineCodeLine **lines;
+    lines = (machineCodeLine **)malloc(size * sizeof(machineCodeLine *));
+    initializeMachineCodeLines(lines, size);
+    instructionsArray->arr = (machineCodeLine *)realloc(instructionsArray->arr, (instructionsArray->size + size) * sizeof(machineCodeLine));
+
+    if (instructionsArray->arr == NULL) {
+        /*ERROR NOT ENOUGH SPACE*/
+    }
+
+    for (i=0; i<size; i++) {
+        setMachineCode(lines[i], *(arr + i));
+        instructionsArray->arr[instructionsArray->size + i] = *lines[i];
+        machineCodeLineToString(lines[i]);
+    }
+
+    instructionsArray->size += size;
+    free (lines);
+    printf("\n");
 }

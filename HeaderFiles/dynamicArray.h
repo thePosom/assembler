@@ -32,7 +32,11 @@ machineCodeLine getFromInstructionsArray(int location); /*assumes the call is le
 
 void insertStringToDataArray(char *str);
 
+void insertStringToInstructionsArray(char *str);
+
 void insertArrayToDataArray(int *arr, int size);
+
+void insertArrayToInstructionsArray (int *arr, int size);
 
 
 #endif
