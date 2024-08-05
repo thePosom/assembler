@@ -1,6 +1,7 @@
 #ifndef HASHMAP
 #define HASHMAP
 
+#include "secondPassScript.h"
 #include "globals.h"
 #include "util.h"
 
@@ -69,5 +70,7 @@ void freeMacroNamesTable();
 void freeList(lineList *lines);
 void insertLineNodeToEnd(lineList *lines, lineNode *pNode);
 void addToAllDataInSymbolTable(int num);
+
+void printToFileByType(FILE *file, char *type);
 
 #endif

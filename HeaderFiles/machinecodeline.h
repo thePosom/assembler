@@ -4,7 +4,7 @@
 #include "util.h"
 
 typedef struct {
-    unsigned char values[2]; /* char[0] in 0-2 ARE, char[0] in 4-7 Dest, char[1] in 0-3 origin, char[1] in 4-7 opcode */
+    unsigned char values[2]; /* char[0] in 0-2 ARE, char[0] in 3 is it the start, char[0] in 4-7 Dest, char[1] in 0-3 origin, char[1] in 4-7 opcode */
 } machineCodeLine;
 
 
@@ -12,6 +12,10 @@ typedef struct {
 void setMachineCodeARE(machineCodeLine *line, int location, bool value);
 
 void setMachineCodeValues(machineCodeLine *line, int location, bool value);
+
+void setMachineCodeIsStart(machineCodeLine *line, bool value);
+
+bool getMachineCodeIsStart(machineCodeLine *line);
 
 bool getMachineCodeARE(machineCodeLine *line, int location);
 
@@ -32,5 +36,7 @@ void setMachineCode6To8Values (machineCodeLine *line, int value);
 void machineCodeLineToString(machineCodeLine *line);
 
 void setMachineCode (machineCodeLine *line, int value);
+
+int machineCodeLineToInt(machineCodeLine *line);
 
 #endif

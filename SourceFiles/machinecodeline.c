@@ -14,6 +14,12 @@ void initializeMachineCodeLines(machineCodeLine *lines[], int size) {
     int i;
     for (i = 0; i < size; i++) {
         lines[i] = (machineCodeLine *)malloc(sizeof(machineCodeLine));
+        if (lines[i] == NULL) {
+            perror("Error, not enough memory");
+            exit(EXIT_FAILURE);
+        }
+        
+
         initializeMachineCodeLine(lines[i]);
     }
 }
@@ -38,6 +44,17 @@ void setMachineCodeValues(machineCodeLine *line, int location, bool value) {
         else
             line->values[0] &= ~(1 << (location + 4));
     }
+}
+
+void setMachineCodeIsStart(machineCodeLine *line, bool value) {
+    int mask;
+    mask = 247; /* mask for 11110111*/
+    line->values[0] &= mask;
+    line->values[0] += (value << 3);
+}
+
+bool getMachineCodeIsStart(machineCodeLine *line) {
+    return (line->values[0] >> 3) & 1 ;
 }
 
 bool getMachineCodeARE(machineCodeLine *line, int location) {
@@ -142,3 +159,20 @@ void machineCodeLineToString(machineCodeLine *line) {
 
     printf("\n");
 }
+
+int machineCodeLineToInt(machineCodeLine *line) {
+    int sum;
+    int mask;
+
+    mask = 7; /* mask for 00000111*/
+    sum = line->values[0] & mask;
+
+    mask = 240; /* mask for 11110000*/
+    sum += (line->values[0] & mask) >> 1;
+
+    sum += line->values[1] << 7;
+
+    return sum;
+}
+
+

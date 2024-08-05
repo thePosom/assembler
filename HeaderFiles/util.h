@@ -40,5 +40,10 @@ bool isRegister(char *str);
 
 int getRegisterNum (char *str);
 
+bool endsWithColon(char *str);
+
+FILE* openFile(char *fileName, char *fileType, char* openType);
+
+void removeFile(char *fileName, char *fileType);
 
 #endif

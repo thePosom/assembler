@@ -6,8 +6,6 @@
 
 void expandMacros(char *filesName) {
 
-    char asFileName[MAX_LINE_SIZE];
-    char amFileName[MAX_LINE_SIZE];
     FILE *asFile, *amFile;
     char buffer[MAX_LINE_SIZE];
     char *macroName;
@@ -17,18 +15,12 @@ void expandMacros(char *filesName) {
     lines = NULL;
     macroName = NULL;
 
-    strcpy(asFileName, filesName);
-    strcat(asFileName, ".as");
-    
-    strcpy(amFileName, filesName);
-    strcat(amFileName, ".am");
-
-    asFile = fopen(asFileName, "r");
-    amFile = fopen(amFileName, "w");
+    asFile = openFile(filesName, ".as", "r");
+    amFile = openFile(filesName, ".am", "w");
 
     if (asFile == NULL) {
-        perror("Error opening file"); /*ERROR, DO SOMETHING COOL*/
-        exit(1);
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
     }
 
     initializeMacroTable();
@@ -38,6 +30,11 @@ void expandMacros(char *filesName) {
     while (fgets (buffer, sizeof(buffer), asFile) != NULL ) {
 
         line* currentLine = (line *)malloc(sizeof(line));
+        if (currentLine == NULL) {
+            perror("Error, not enough memory");
+            exit(EXIT_FAILURE);
+        }
+        
         lineToArrayOfWords(buffer, currentLine);
 
         if (currentLine->wordsCount != 0 && currentLine->wordsArray[0][0] != ';') {
@@ -73,6 +70,11 @@ void startOfMacroDefinition(line *currentLine, lineList **lines, char **macroNam
         *macro = true;
         *macroName = my_strdup(currentLine->wordsArray[1]);
         *lines = (lineList *)malloc(sizeof(lineList));
+        if (*lines == NULL) {
+            perror("Error, not enough memory");
+            exit(EXIT_FAILURE);
+        }
+
         (*lines)->head = NULL;
         (*lines)->end = NULL;
     }
@@ -98,6 +100,11 @@ void insideMacroDefinition (line *currentLine, lineList *lines, char *macroName,
     }
     else {
         pNode = (lineNode *)malloc(sizeof(lineNode));
+        if (pNode == NULL) {
+            perror("Error, not enough memory");
+            exit(EXIT_FAILURE);
+        }
+
         lineText = my_strdup(buffer);
         pNode->lineText = lineText;
         pNode->next = NULL;

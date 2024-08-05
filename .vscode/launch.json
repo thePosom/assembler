@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler", // Replace with your executable name
-            "args": ["prog"], // Arguments to pass to your executable
+            "args": ["ps","prog"], // Arguments to pass to your executable
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

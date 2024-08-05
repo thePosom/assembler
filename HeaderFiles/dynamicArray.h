@@ -16,6 +16,13 @@ typedef struct
     machineCodeLine *arr;
 } dynamicMachineCodeLinesArray;
 
+typedef struct externNode 
+{
+    char *name;
+    int address;
+    struct externNode *next;
+} externNode;
+
 void insertToDynamicArray(dynamicIntArray *array, int num);
 
 void insertToInstructionsArray(machineCodeLine *lines[3], int size);
@@ -26,9 +33,7 @@ void initializeInstructionsArray();
 
 void initializeDataArray();
 
-int getFromDataArray(int location); /*assumes the call is legal*/
-
-machineCodeLine getFromInstructionsArray(int location); /*assumes the call is legal*/
+int getFromDataArray(int DC);
 
 void insertStringToDataArray(char *str);
 
@@ -38,5 +43,14 @@ void insertArrayToDataArray(int *arr, int size);
 
 void insertArrayToInstructionsArray (int *arr, int size);
 
+void getInstructionsArray(machineCodeLine **arr);
+
+machineCodeLine* getFromInstructionsArray(int location);
+
+int getDataArraySize();
+
+externNode* insertToExternArray(externNode *node, char *name, int address);
+
+void freeExternArray(externNode *node);
 
 #endif

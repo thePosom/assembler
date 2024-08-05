@@ -50,7 +50,11 @@ void insertToMacroTable(lineList *lines, char *name) {
 
     location = hash ((unsigned char *) name);
     pNode = (macroNode *)malloc(sizeof(macroNode)); 
-
+    if (pNode == NULL) {
+        perror("Error, not enough memory");
+        exit(EXIT_FAILURE);
+    }
+     
     pNode->name = my_strdup(name);
     pNode->linesList = lines;
 
@@ -66,10 +70,15 @@ void insertToSymbolTable(char *name, char *type, int value) {
     symbolNode *pNode;
 
     location = hash ((unsigned char *) name);
-    pNode = (symbolNode *)malloc(sizeof(symbolNode)); 
+    pNode = (symbolNode *)malloc(sizeof(symbolNode));
+    if (pNode == NULL) {
+        perror("Error, not enough memory");
+        exit(EXIT_FAILURE);
+    }
 
     pNode->name = my_strdup(name);
     pNode->type = my_strdup(type);
+    pNode->value = value;
 
     pNode->next = symbolsHashmap[location].head;
     symbolsHashmap[location].head = pNode;
@@ -82,9 +91,13 @@ void insertToMacroNamesTable(char *name) {
 
     location = hash ((unsigned char *) name);
     pNode = (symbolNode *)malloc(sizeof(symbolNode)); 
+    if (pNode == NULL) {
+        perror("Error, not enough memory");
+        exit(EXIT_FAILURE);
+    }
 
     pNode->name = my_strdup(name);
-    pNode->type = NULL;
+    pNode->type = NULL; /*maybe bad*/
     pNode->value = 0;
 
     pNode->next = symbolsHashmap[location].head;
@@ -249,8 +262,27 @@ void addToAllDataInSymbolTable(int num) {
             while (pNode) {
                 symbolNode* next;
                 next = pNode->next;
-                if (pNode->type != NULL && strcmp(pNode->type, ".data") == 0) /*segment*/
+                if (pNode->type != NULL && strcmp(pNode->type, ".data") == 0)
                     pNode->value+=num;
+                pNode = next;
+            }
+        }
+    }
+}
+
+void printToFileByType(FILE *file, char *type) {
+    int i;
+    for (i = 0; i < HASHMAPSIZE; i++) {
+        if (symbolsHashmap[i].head) {
+            symbolNode *pNode = symbolsHashmap[i].head;
+            while (pNode) {
+                symbolNode* next;
+                next = pNode->next;
+                if (pNode->type != NULL && strcmp(pNode->type, type) == 0) {
+                    char address[5];
+                    intToCharsInNBase(pNode->value, address, 4, 10);
+                    fprintf(file, "%s %s\n", pNode->name, address);
+                }
                 pNode = next;
             }
         }

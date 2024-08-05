@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../HeaderFiles/assembler.h"
-#include "../HeaderFiles/preAssembler.h"
+#include "../HeaderFiles/secondPassScript.h"
 #include "../HeaderFiles/firstPassScript.h"
+#include "../HeaderFiles/preAssembler.h"
+#include "../HeaderFiles/assembler.h"
 #include "../HeaderFiles/globals.h"
 #include "../HeaderFiles/util.h"
 
@@ -21,9 +22,7 @@ int main(int argc, char *argv[]) {
         filesName = argv[i];
         expandMacros(filesName);
         firstPass(filesName);
-        /*secondPass(filesName);*/ 
-        
-        
+        secondPass(filesName);
     }
     
     return 0;

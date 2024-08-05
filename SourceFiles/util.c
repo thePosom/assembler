@@ -100,7 +100,8 @@ bool isInstruction(char *name) {
     return false;
 }
 
-bool isNameLegal(char *name) {
+bool isNameLegal(char *name) { 
+    /* add like extern stuff ans shit */
     if ( (strcmp (name, "mov") == 0 ) ||
     (strcmp (name, "cmp") == 0 ) || 
     (strcmp (name, "add") == 0 ) ||
@@ -125,9 +126,16 @@ bool isNameLegal(char *name) {
     return true;
 }
 
-char *my_strdup(const char *src) {
-    size_t len = strlen(src) + 1;
-    char *dst = malloc(len);
+char* my_strdup(const char *src) {
+    int len;
+    char *dst;
+    len = strlen(src) + 1;
+    dst = (char *)malloc(len * sizeof(char));
+    if (dst == NULL) {
+        perror("Error, not enough memory");
+        exit(EXIT_FAILURE);
+    }
+     
     if (dst == NULL) 
         return NULL;
     strcpy(dst, src);
@@ -233,6 +241,32 @@ bool isRegister(char *str) {
 
 int getRegisterNum (char *str) {
     return (*(str + 1) - '0');
+}
+
+bool endsWithColon(char *str) {
+    return *(str + strlen(str) - 1) == ':';
+}
+
+FILE* openFile(char *fileName, char *fileType, char* openType) {
+
+    char fileNameCopy[MAX_LINE_SIZE];
+
+    strcpy(fileNameCopy, fileName);
+    strcat(fileNameCopy, fileType);
+    
+    return fopen(fileNameCopy, openType);
+
+}
+
+void removeFile(char *fileName, char *fileType) {
+
+    char fileNameCopy[MAX_LINE_SIZE];
+
+    strcpy(fileNameCopy, fileName);
+    strcat(fileNameCopy, fileType);
+    
+    remove(fileNameCopy);
+
 }
 
 /* int decimalToOctal */
