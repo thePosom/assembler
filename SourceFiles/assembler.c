@@ -7,22 +7,30 @@
 #include "../HeaderFiles/preAssembler.h"
 #include "../HeaderFiles/assembler.h"
 #include "../HeaderFiles/globals.h"
+#include "../HeaderFiles/errors.h"
 #include "../HeaderFiles/util.h"
 
 
-/**
- * The program prompts the user to enter the length and elements of an array,
- * calculates the partial sums, and prints both the original array and partial sums.
- * לשנות
- */
 int main(int argc, char *argv[]) {
     int i;
+
+    if (argc == 1) {
+        printGeneralError(ERROR_CODE_1);
+        exit(EXIT_FAILURE);
+    }
+
     for (i=1 ; i<argc ; i++) {
         char *filesName;
         filesName = argv[i];
         expandMacros(filesName);
-        firstPass(filesName);
-        secondPass(filesName);
+        if (firstPass(filesName))
+            secondPass(filesName);
+        else {
+            freeInstructionsArray();
+            freeMacroNamesTable();
+            freeSymbolTable();
+            freeDataArray();
+        }
     }
     
     return 0;

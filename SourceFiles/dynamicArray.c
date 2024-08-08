@@ -5,47 +5,58 @@
 
 #include "../HeaderFiles/dynamicArray.h"
 
+/* Global variables for dynamic arrays of machine code lines and integers */
 static dynamicMachineCodeLinesArray *instructionsArray;
 static dynamicIntArray *dataArray;
 
 
-void insertToInstructionsArray(machineCodeLine *lines[3], int size) {
+void insertToInstructionsArray(machineCodeLine *lines[MAX_BINARY_WORDS_IN_LINE], int size) {
     int i;
+
+    /* Reallocate memory for the instructions array to accommodate new lines */
     instructionsArray->arr = (machineCodeLine *)realloc(instructionsArray->arr, (instructionsArray->size + size) * sizeof(machineCodeLine));
     if (instructionsArray->arr == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
-    for (i=0;i<size;i++) {
+    /* Copy new lines into the array and free the memory for the original lines */
+    for (i = 0; i < size; i++) {
         instructionsArray->arr[instructionsArray->size + i] = *lines[i];
-        /* machineCodeLineToString(lines[i]); */
         free(lines[i]);
     }
+
+    /* Free remaining memory for unused lines */
+    for (i = size; i < MAX_BINARY_WORDS_IN_LINE; i++)
+        free(lines[i]);
+
     instructionsArray->size += size;
 }
 
 void insertToDataArray(int num) {
+
+    /* Increase the size of the data array */
     dataArray->size++;
     dataArray->arr = (int *)realloc(dataArray->arr, (dataArray->size) * sizeof(int));
     if (dataArray->arr == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
+    /* Insert the new integer into the array */
     *(dataArray->arr + (dataArray->size - 1) ) = num;
 }
 
 void initializeInstructionsArray() {
     instructionsArray = (dynamicMachineCodeLinesArray *)malloc(sizeof(dynamicMachineCodeLinesArray));
     if (instructionsArray == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
     instructionsArray->arr = (machineCodeLine *)malloc(sizeof(machineCodeLine));
     if (instructionsArray->arr == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
@@ -56,15 +67,17 @@ void initializeInstructionsArray() {
 externNode* insertToExternArray(externNode *node, char *name, int address) {
     externNode *pNode;
 
+    /* Allocate memory for the new externNode */
     pNode = (externNode *)malloc(sizeof(externNode)); 
     if (pNode == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
     pNode->name = my_strdup(name);
     pNode->address = address;
 
+    /* Insert the new node at the beginning of the list */
     pNode->next = node;
     return pNode;
 }
@@ -83,7 +96,7 @@ void freeExternArray(externNode *node) {
 void initializeDataArray() {
     dataArray = (dynamicIntArray *)malloc(sizeof(dynamicIntArray));
     if (dataArray == NULL) {
-        perror("Error, not enough memory");
+        printGeneralError(ERROR_CODE_4);
         exit(EXIT_FAILURE);
     }
 
@@ -105,86 +118,10 @@ void insertStringToDataArray(char *str) {
     insertToDataArray('\0');
 }
 
-void insertStringToInstructionsArray(char *str) {
-    int i;
-    int size;
-    char c;
-    char *newStr;
-    machineCodeLine **lines;
-    newStr = str;
-    size = 1;
-
-    while ((c = *newStr++) != '\0')
-        size++;
-    
-    lines = (machineCodeLine **)malloc(size * sizeof(machineCodeLine *));
-    if (lines == NULL) {
-        perror("Error, not enough memory");
-        exit(EXIT_FAILURE);
-    }
-
-    initializeMachineCodeLines(lines, size);
-    instructionsArray->arr = (machineCodeLine *)realloc(instructionsArray->arr, (instructionsArray->size + size) * sizeof(machineCodeLine));
-    if (instructionsArray->arr == NULL) {
-        perror("Error, not enough memory");
-        exit(EXIT_FAILURE);
-    }
-
-    for (i=0; (c = *str++) != '\0'; i++) {
-        setMachineCode(lines[i], (int) c );
-        if (i == 0) 
-            setMachineCodeIsStart (lines[i], true);
-        instructionsArray->arr[instructionsArray->size + i] = *lines[i];
-        /* machineCodeLineToString(lines[i]); */
-    }
-
-    setMachineCode(lines[i], '\0');
-    if (i == 1) 
-        setMachineCodeIsStart (lines[i], true);
-    instructionsArray->arr[instructionsArray->size + i] = *lines[i];
-    /* machineCodeLineToString(lines[i]); */
-
-    instructionsArray->size += size;
-    free (lines);
-}
-
 void insertArrayToDataArray(int *arr, int size) {
     int i;
     for (i=0; i<size; i++)
         insertToDataArray( *(arr + i) );
-}
-
-void insertArrayToInstructionsArray (int *arr, int size) {
-    int i;
-    machineCodeLine **lines;
-    lines = (machineCodeLine **)malloc(size * sizeof(machineCodeLine *));
-    if (lines == NULL) {
-        perror("Error, not enough memory");
-        exit(EXIT_FAILURE);
-    }
-
-    initializeMachineCodeLines(lines, size);
-    
-    instructionsArray->arr = (machineCodeLine *)realloc(instructionsArray->arr, (instructionsArray->size + size) * sizeof(machineCodeLine));
-    if (instructionsArray->arr == NULL) {
-        perror("Error, not enough memory");
-        exit(EXIT_FAILURE);
-    }
-
-    for (i=0; i<size; i++) {
-        setMachineCode(lines[i], *(arr + i));
-        if (i == 0) 
-            setMachineCodeIsStart (lines[i], true);
-        instructionsArray->arr[instructionsArray->size + i] = *lines[i];
-        /* machineCodeLineToString(lines[i]); */
-    }
-
-    instructionsArray->size += size;
-    free (lines);
-}
-
-void getInstructionsArray(machineCodeLine **arr) {
-    *arr = instructionsArray->arr; 
 }
 
 machineCodeLine* getFromInstructionsArray(int location) {
@@ -198,9 +135,6 @@ int getDataArraySize() {
 }
 
 void freeInstructionsArray() {
-    int i;
-    for (i = 0; i < instructionsArray->size; i++)
-        free(*(instructionsArray->arr + i));
     free(instructionsArray->arr);
     free(instructionsArray);
 }

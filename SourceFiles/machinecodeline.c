@@ -5,174 +5,151 @@
 #include "../HeaderFiles/machinecodeline.h"
 
 void initializeMachineCodeLine(machineCodeLine *line) {
+    /* Check if the line pointer is not NULL */
     if (line == NULL) return;
+
+    /* Initialize the values array to zero */
     line->values[0] = 0;
     line->values[1] = 0;
 }
 
 void initializeMachineCodeLines(machineCodeLine *lines[], int size) {
     int i;
+
+    /* Loop through each element in the lines array */
     for (i = 0; i < size; i++) {
+
+        /* Allocate memory for a machineCodeLine structure */
         lines[i] = (machineCodeLine *)malloc(sizeof(machineCodeLine));
         if (lines[i] == NULL) {
-            perror("Error, not enough memory");
+            printGeneralError(ERROR_CODE_4);
             exit(EXIT_FAILURE);
         }
-        
 
+        /* Initialize the newly allocated machineCodeLine structure */
         initializeMachineCodeLine(lines[i]);
     }
 }
 
 void setMachineCodeARE(machineCodeLine *line, int location, bool value) {
     if (value)
-        line->values[0] |= 1<<location;
+        /* Set the bit at the specified location to 1 */
+        line->values[0] |= 1 << location;
     else
-        line->values[0] &= ~(1<<location);
+        /* Clear the bit at the specified location */
+        line->values[0] &= ~(1 << location);
 }
 
 void setMachineCodeValues(machineCodeLine *line, int location, bool value) {
-    if (location >= 4) {
+    if (location >= SIZE_OF_ADDRESING_METHODS_IN_WORD) {
         if (value)
-            line->values[1] |= 1 << (location - 4);
+            /* Set the bit in the second half of values if the condition is met */
+            line->values[1] |= 1 << (location - SIZE_OF_ADDRESING_METHODS_IN_WORD);
         else
-            line->values[1] &= ~(1 << (location - 4));
+            /* Clear the bit in the second half of values */
+            line->values[1] &= ~(1 << (location - SIZE_OF_ADDRESING_METHODS_IN_WORD));
     }
     else {
         if (value)
-            line->values[0] |= 1 << (location + 4);
+            /* Set the bit in the first half of values if the condition is met */
+            line->values[0] |= 1 << (location + SIZE_OF_ADDRESING_METHODS_IN_WORD);
         else
-            line->values[0] &= ~(1 << (location + 4));
+            /* Clear the bit in the first half of values */
+            line->values[0] &= ~(1 << (location + SIZE_OF_ADDRESING_METHODS_IN_WORD));
     }
 }
 
-void setMachineCodeIsStart(machineCodeLine *line, bool value) {
-    int mask;
-    mask = 247; /* mask for 11110111*/
-    line->values[0] &= mask;
-    line->values[0] += (value << 3);
-}
-
-bool getMachineCodeIsStart(machineCodeLine *line) {
-    return (line->values[0] >> 3) & 1 ;
-}
-
 bool getMachineCodeARE(machineCodeLine *line, int location) {
+    /* Extract and return the bit at the specified location */
     return (line->values[0] >> location) & 1;
 }
 
 bool getMachineCodeValues(machineCodeLine *line, int location) {
-    if (location >= 4)
-        return ( line->values[1] >> (location - 4) ) & 1;
-    return ( line->values[0] >> (location + 4) ) & 1;
+    if (location >= SIZE_OF_ADDRESING_METHODS_IN_WORD)
+        /* Extract and return the bit from the second half of values */
+        return (line->values[1] >> (location - SIZE_OF_ADDRESING_METHODS_IN_WORD)) & 1;
+    
+    /* Extract and return the bit from the first half of values */
+    return (line->values[0] >> (location + SIZE_OF_ADDRESING_METHODS_IN_WORD)) & 1;
 }
 
-int machineCodeToNum(machineCodeLine *line) { /*needed?*/
-    int i;
-    int pow;
-    int num;
-
-    num = 0;
-    pow = 1;
-    for (i = 0; i < 3; i++) {
-        if (getMachineCodeARE(line, i) == true)
-            num=+pow;
-        pow *= 2;
-    }
-
-    for (i = 0; i < 15-3; i++) {
-        if (getMachineCodeValues(line, i) == true)
-            num=+pow;
-        pow *= 2;
-    }
-
-
-    return num;
-}
-
-void insertOpcodeToMachineCodeLine (machineCodeLine *line, int opcode) /*set if opcode is ERROR*/ {
+void insertOpcodeToMachineCodeLine(machineCodeLine *line, int opcode) /*set if opcode is ERROR*/ {
     int mask;
-    mask = 15; /* mask for 00001111*/
+
+    /* Apply a mask to clear the current opcode value */
+    mask = ORIGIN_MASK;
     line->values[1] &= mask;
-    line->values[1] += (opcode << 4);
+
+    /* Insert the new opcode value */
+    line->values[1] += (opcode << SIZE_OF_OPCODE);
 }
 
-void insertValuesToMachineCodeLine (machineCodeLine *line, int values) /*set if opcode is ERROR*/ {
+void insertValuesToMachineCodeLine(machineCodeLine *line, int values) /*set if opcode is ERROR*/ {
     int mask;
     unsigned char firstHalf;
     unsigned char secondHalf;
-    mask = 15; /* mask for 00001111*/
+
+    /* Apply a mask to clear the current values in the first half */
+    mask = DEST_MASK >> SIZE_OF_ADDRESING_METHODS_IN_WORD;
     line->values[0] &= mask;
-    firstHalf = values << 4;
+
+    /* Split and insert values into the appropriate halves */
+    firstHalf = values << SIZE_OF_ADDRESING_METHODS_IN_WORD;
     line->values[0] += firstHalf;
 
-    secondHalf = values >> (8 - 4);
-    
+    secondHalf = values >> SIZE_OF_ADDRESING_METHODS_IN_WORD;
     line->values[1] = secondHalf;
 }
 
-void setMachineCode3To5Values (machineCodeLine *line, int value) {
+void setMachineCode3To5Values(machineCodeLine *line, int value) {
     int mask;
-    mask = 143; /* mask for 10001111*/
+
+    /* Apply a mask to clear the current 3 to 5 values */
+    mask = DEST_REGISTER_MASK;
     line->values[0] &= mask;
-    line->values[0] += (value << 4);
+
+    /* Insert the new 3 to 5 values */
+    line->values[0] += (value << SIZE_OF_ADDRESING_METHODS_IN_WORD);
 }
 
-void setMachineCode6To8Values (machineCodeLine *line, int value) {
+void setMachineCode6To8Values(machineCodeLine *line, int value) {
     int mask;
 
-    mask = 252; /* mask for 11111100*/
+    /* Apply a mask to clear the current 6 to 8 values */
+    mask = ORIGIN_REGISTER_MASK;
     line->values[1] &= mask;
+
+    /* Insert the new 6 to 8 values */
     line->values[1] += value >> 1;
-    setMachineCodeValues(line, 3, value%2);
+    setMachineCodeValues(line, 3, value % 2);
 }
 
-void setMachineCode (machineCodeLine *line, int value) {
+void setMachineCode(machineCodeLine *line, int value) {
     int mask;
 
-    mask = 7; /* mask for 00000111*/
+    /* Set the ARE values in the first half of the line */
+    mask = ARE_MASK;
     line->values[0] = (unsigned char) value & mask;
+
+    /* Insert the remaining values shifted to the appropriate position */
     line->values[0] += (unsigned char) ((value & ~mask) << 1);
-    line->values[1] = (unsigned char) (value >> 7);
-}
-
-void machineCodeLineToString(machineCodeLine *line) {
-    int i;
-    for (i=11;i>7;i--) {
-        printf("%d", getMachineCodeValues(line, i));
-    }
-
-    printf(" ");
-    for (;i>3;i--) {
-        printf("%d", getMachineCodeValues(line, i));
-    }
-    
-    printf(" ");
-    for (;i>=0;i--) {
-        printf("%d", getMachineCodeValues(line, i));
-    }
-
-    printf("  ");
-    for (i=2;i>=0;i--) {
-        printf("%d", getMachineCodeARE(line, i));
-    }
-
-    printf("\n");
+    line->values[1] = (unsigned char) (value >> (SIZE_OF_VALUES_IN_WORD - 1));
 }
 
 int machineCodeLineToInt(machineCodeLine *line) {
     int sum;
     int mask;
 
-    mask = 7; /* mask for 00000111*/
+    /* Calculate the sum of ARE values */
+    mask = ARE_MASK;
     sum = line->values[0] & mask;
 
-    mask = 240; /* mask for 11110000*/
+    /* Add the DEST values */
+    mask = DEST_MASK;
     sum += (line->values[0] & mask) >> 1;
 
-    sum += line->values[1] << 7;
+    /* Add the remaining values shifted to the appropriate position */
+    sum += line->values[1] << (SIZE_OF_VALUES_IN_WORD - 1);
 
     return sum;
 }
-
-

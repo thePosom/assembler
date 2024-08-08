@@ -9,7 +9,6 @@ endmacr
  mov *r6,K
  sub r1, r4
  m_macr
-31
  dec K
  jmp LOOP
 END: stop
